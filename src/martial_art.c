@@ -1977,16 +1977,18 @@ void do_blackjack(CHAR_DATA *ch, char *argument)
 
 	damage(ch,victim,ch->level / 2,gsn_blackjack,DAM_NONE, TRUE);
 	check_improve(ch,gsn_blackjack,FALSE,1);
-	if (!IS_NPC(victim))  
-	if (!can_see(victim, ch))
-	  do_yell(victim, "Help! I'm being blackjacked by someone!");
-	else
-	{
-	    sprintf(buf, "Help! I'm being blackjacked by %s!",
-		    (is_affected(ch,gsn_doppelganger)&& !IS_IMMORTAL(victim))?
-		    ch->doppel->name : ch->name );
-	    if (!IS_NPC(victim)) do_yell(victim,buf);
-	}
+	if (!IS_NPC(victim)) {
+    if (!can_see(victim, ch)) {
+      do_yell(victim, "Help! I'm being blackjacked by someone!");
+    }
+    else
+    {
+        sprintf(buf, "Help! I'm being blackjacked by %s!",
+          (is_affected(ch,gsn_doppelganger)&& !IS_IMMORTAL(victim))?
+          ch->doppel->name : ch->name );
+        if (!IS_NPC(victim)) do_yell(victim,buf);
+    }
+  }
         af.type = gsn_headguard;
         af.where = TO_AFFECTS;
         af.level = victim->level;
@@ -4046,7 +4048,6 @@ void do_claw( CHAR_DATA *ch, char *argument )
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    bool FightingCheck;
     int damage_claw;
 
   if (ch_skill_nok(ch,gsn_claw) ) 
@@ -4055,12 +4056,7 @@ void do_claw( CHAR_DATA *ch, char *argument )
   if (!cabal_ok(ch,gsn_claw))
     return;
 
-    if (ch->fighting != NULL)
-	FightingCheck = TRUE;
-    else
-	FightingCheck = FALSE;
-
-    argument = one_argument(argument,arg);
+  argument = one_argument(argument,arg);
  
     if (arg[0] == '\0')
     {

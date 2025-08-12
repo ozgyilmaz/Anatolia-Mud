@@ -217,7 +217,10 @@ void say_spell( CHAR_DATA *ch, int sn )
 	    length = 1;
     }
 
-    sprintf( buf2, "$n utters the words, '%s'.", buf );
+    int written = snprintf(buf2, sizeof(buf2), "$n utters the words, '%s'.", buf );
+    if (written >= sizeof(buf2)) {
+        bug("say_spell()-1: output truncated.",0);
+    }
     sprintf( buf,  "$n utters the words, '%s'.", skill_table[sn].name );
 
     for ( rch = ch->in_room->people; rch; rch = rch->next_in_room )
@@ -945,14 +948,16 @@ void obj_cast_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DA
 	break;
 
     case TAR_OBJ_CHAR_OFF:
-	if ( victim == NULL && obj == NULL)
-	    if (ch->fighting != NULL)
-		victim = ch->fighting;
+	if ( victim == NULL && obj == NULL) {
+	    if (ch->fighting != NULL) {
+		    victim = ch->fighting;
+        }
 	    else
 	    {
 		send_to_char("You can't do that.\n\r",ch);
 		return;
 	    }
+    }
 
 	    if (victim != NULL)
 	    {
@@ -2512,28 +2517,33 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         act("$n looks warmer.",victim,NULL,NULL,TO_ROOM);
     }
 
-    if (check_dispel(level,victim,skill_lookup("curse")))
+    if (check_dispel(level,victim,skill_lookup("curse"))) {
         found = TRUE;
+    }
  
-    if (check_dispel(level,victim,skill_lookup("detect evil")))
+    if (check_dispel(level,victim,skill_lookup("detect evil"))) {
         found = TRUE;
+    }
 
-    if (check_dispel(level,victim,skill_lookup("detect good")))
-	found = TRUE;
+    if (check_dispel(level,victim,skill_lookup("detect good"))) {
+	    found = TRUE;
+    }
  
-    if (check_dispel(level,victim,skill_lookup("detect hidden")))
+    if (check_dispel(level,victim,skill_lookup("detect hidden"))) {
         found = TRUE;
+    }
  
-    if (check_dispel(level,victim,skill_lookup("detect invis")))
+    if (check_dispel(level,victim,skill_lookup("detect invis"))) {
         found = TRUE;
+    }
  
+    if (check_dispel(level,victim,skill_lookup("detect hidden"))) {
         found = TRUE;
- 
-    if (check_dispel(level,victim,skill_lookup("detect hidden")))
-        found = TRUE;
+    }
 
-    if (check_dispel(level,victim,skill_lookup("detect magic")))
+    if (check_dispel(level,victim,skill_lookup("detect magic"))) {
         found = TRUE;
+    }
  
     if (check_dispel(level,victim,skill_lookup("faerie fire")))
     {
@@ -2675,10 +2685,12 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 	found = TRUE;
     }
 
-    if (found)
+    if (found) {
         send_to_char("Ok.\n\r",ch);
-    else
+    }
+    else {
         send_to_char("Spell failed.\n\r",ch);
+    }
 	return;
 }
 
@@ -2701,8 +2713,9 @@ void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 	    if ( vch != ch && !is_safe_spell(ch,vch,TRUE) && !is_same_group(ch, vch))
 	      if ( is_safe(ch, vch) )
 		continue;
-	    if ( ch == vch )
-		continue;
+	    if ( ch == vch ) {
+		    continue;
+        }
 		if (IS_AFFECTED(vch,AFF_FLYING))
 		    damage(ch,vch,0,sn,DAM_BASH,TRUE);
 		else
@@ -5383,22 +5396,23 @@ void spell_gas_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 	||  (IS_NPC(ch) && IS_NPC(vch) 
 	&&   (ch->fighting == vch || vch->fighting == ch)))
 	    continue;
-	if ( is_safe(ch, vch) )
+	if ( is_safe(ch, vch) ) {
           continue;
-          if (!IS_NPC(ch) && vch != ch &&
-              ch->fighting != vch && vch->fighting != ch &&
-              (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
-            {
-            if (!can_see(vch, ch))
-                do_yell(vch, "Help someone is attacking me!");
-            else
-              {
-                 sprintf(buf,"Die, %s, you sorcerous dog!",
-                    (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
-                     ch->doppel->name : ch->name);
-                 do_yell(vch,buf);
-              }
-          }
+    }
+    if (!IS_NPC(ch) && vch != ch &&
+        ch->fighting != vch && vch->fighting != ch &&
+        (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
+    {
+    if (!can_see(vch, ch))
+        do_yell(vch, "Help someone is attacking me!");
+    else
+        {
+            sprintf(buf,"Die, %s, you sorcerous dog!",
+            (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
+                ch->doppel->name : ch->name);
+            do_yell(vch,buf);
+        }
+    }
 
 	if (saves_spell(level,vch,DAM_POISON))
 	{
@@ -6083,22 +6097,23 @@ void spell_hurricane(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 	||  (IS_NPC(ch) && IS_NPC(vch) 
 	&&   (ch->fighting == vch || vch->fighting == ch)))
 	    continue;
-	if ( is_safe(ch, vch) )
+	if ( is_safe(ch, vch) ) {
           continue;
-          if (!IS_NPC(ch) && vch != ch &&
-              ch->fighting != vch && vch->fighting != ch &&
-              (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
-            {
-            if (!can_see(vch, ch))
-                do_yell(vch, "Help someone is attacking me!");
-            else
-              {
-                 sprintf(buf,"Die, %s, you sorcerous dog!",
-                    (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
-                     ch->doppel->name : ch->name);
-                 do_yell(vch,buf);
-              }
-          }
+    }
+    if (!IS_NPC(ch) && vch != ch &&
+        ch->fighting != vch && vch->fighting != ch &&
+        (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
+    {
+    if (!can_see(vch, ch))
+        do_yell(vch, "Help someone is attacking me!");
+    else
+        {
+            sprintf(buf,"Die, %s, you sorcerous dog!",
+            (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
+                ch->doppel->name : ch->name);
+            do_yell(vch,buf);
+        }
+    }
 
 	if (!IS_AFFECTED(vch,AFF_FLYING)) dam /= 2;
 
@@ -6699,8 +6714,9 @@ void spell_grounding( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.bitvector = ADET_GROUNDING;
     affect_to_char( victim, &af );
     send_to_char( "Your body is electrically grounded.\n\r", victim );
-    if ( ch != victim )
-	act("$N is grounded by your magic.",ch,NULL,victim,TO_CHAR);
+    if ( ch != victim ) {
+	    act("$N is grounded by your magic.",ch,NULL,victim,TO_CHAR);
+    }
 	return;
 }
 
@@ -7031,22 +7047,23 @@ void spell_windwall( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	||  (IS_NPC(ch) && IS_NPC(vch) 
 	&&   (ch->fighting == vch || vch->fighting == ch)))
 	    continue;
-	if ( is_safe(ch, vch) )
+	if ( is_safe(ch, vch) ) {
           continue;
-          if (!IS_NPC(ch) && vch != ch &&
-              ch->fighting != vch && vch->fighting != ch &&
-              (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
-            {
-            if (!can_see(vch, ch))
-                do_yell(vch, "Help someone is attacking me!");
-            else
-              {
-                 sprintf(buf,"Die, %s, you sorcerous dog!",
-                    (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
-                     ch->doppel->name : ch->name);
-                 do_yell(vch,buf);
-              }
-          }
+    }
+    if (!IS_NPC(ch) && vch != ch &&
+        ch->fighting != vch && vch->fighting != ch &&
+        (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
+    {
+    if (!can_see(vch, ch))
+        do_yell(vch, "Help someone is attacking me!");
+    else
+        {
+            sprintf(buf,"Die, %s, you sorcerous dog!",
+            (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
+                ch->doppel->name : ch->name);
+            do_yell(vch,buf);
+        }
+    }
 
 	if (!IS_AFFECTED(vch,AFF_FLYING)) dam /= 2;
 

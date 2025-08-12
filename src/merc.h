@@ -2869,7 +2869,6 @@ extern	const	struct	con_app_type	con_app		[26];
 
 extern  const   struct  language_type   language_table     [MAX_LANGUAGE];
 extern	const	struct	translation_type translation_table	[];
-extern	const	struct	cmd_type	cmd_table	[];
 extern	const	struct	class_type	class_table	[MAX_CLASS];
 extern	const	struct	weapon_type	weapon_table	[];
 extern  const   struct  item_type	item_table	[];

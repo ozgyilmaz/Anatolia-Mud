@@ -689,11 +689,12 @@ void do_put( CHAR_DATA *ch, char *argument )
 
 	if (container->pIndexData->vnum == OBJ_VNUM_PIT 
 	&&  !CAN_WEAR(container,ITEM_TAKE))
+	{
 	    if (obj->timer)
 		SET_BIT(obj->extra_flags,ITEM_HAD_TIMER);
 	    else
 	        obj->timer = number_range(100,200);
-
+	}
 	obj_from_char( obj );
 	obj_to_obj( obj, container );
 
@@ -731,11 +732,12 @@ void do_put( CHAR_DATA *ch, char *argument )
 	    {
 	    	if (container->pIndexData->vnum == OBJ_VNUM_PIT
 	    	&&  !CAN_WEAR(obj, ITEM_TAKE) )
+			{
 	    	    if (obj->timer)
 			SET_BIT(obj->extra_flags,ITEM_HAD_TIMER);
 	    	    else
 	    	    	obj->timer = number_range(100,200);
-
+			}
 		if ( obj->pIndexData->limit != -1 )
 		{
 		  act( "This unworthy container won't hold $p.", ch,obj,NULL,TO_CHAR);
@@ -1548,7 +1550,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     int percent,skill;
 
     /* find out what */
-    if (argument == '\0')
+    if (*argument == '\0')
     {
 	send_to_char("Envenom what item?\n\r",ch);
 	return;
@@ -4112,8 +4114,7 @@ void do_lore( CHAR_DATA *ch, char *argument )
   if ( IS_NPC(ch) || ch->level < skill_table[gsn_lore].skill_level[ch->class]
       || get_skill(ch,gsn_lore) < 10)
     {
-      send_to_char("The meaning of this object escapes you for the moment.
-\n\r", ch);
+      send_to_char("The meaning of this object escapes you for the moment.\n\r", ch);
       return;
     }
 
@@ -4397,8 +4398,9 @@ void do_lore( CHAR_DATA *ch, char *argument )
       break;
     }
   
-  if (get_skill(ch,gsn_lore) < 87)
+  if (get_skill(ch,gsn_lore) < 87) {
     check_improve(ch,gsn_lore,TRUE,5);
+	}
     return;
 
   if (!obj->enchanted)
@@ -4637,9 +4639,9 @@ void do_withdraw(CHAR_DATA *ch, char *argument)
   ch->silver += 0.90 * amount_s;
   if (amount_s > 0  && amount_s < 10 )  {
     if ( amount_s == 1 )
-      sprintf(buf, "One coin??!!! You cheapskate!\n\r");
+      sprintf(buf, "One coin?! You cheapskate!\n\r");
     else
-      sprintf(buf, "%ld coins??!!! You cheapskate!\n\r", amount_s);
+      sprintf(buf, "%ld coins?! You cheapskate!\n\r", amount_s);
   }
   else 
     sprintf(buf, 

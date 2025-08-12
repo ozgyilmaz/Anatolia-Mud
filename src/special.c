@@ -408,8 +408,9 @@ bool dragon( CHAR_DATA *ch, char *spell_name )
     CHAR_DATA *v_next;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
    for ( victim = ch->in_room->people; victim != NULL; victim = v_next)
     {
@@ -437,8 +438,9 @@ bool dragon( CHAR_DATA *ch, char *spell_name )
  */
 bool spec_breath_any( CHAR_DATA *ch )
 {
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     switch ( number_bits( 3 ) )
     {
@@ -482,8 +484,9 @@ bool spec_breath_gas( CHAR_DATA *ch )
 {
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     if ( ( sn = skill_lookup( "gas breath" ) ) < 0 )
 	return FALSE;
@@ -570,8 +573,9 @@ bool spec_cast_cleric( CHAR_DATA *ch )
     CHAR_DATA *victim;
     CHAR_DATA *v_next;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -594,8 +598,9 @@ bool spec_cast_judge( CHAR_DATA *ch )
     char *spell;
     int sn;
  
-    if ( ch->position != POS_FIGHTING )
-        return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
  
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -621,8 +626,9 @@ bool spec_cast_mage( CHAR_DATA *ch )
     CHAR_DATA *victim;
     CHAR_DATA *v_next;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -647,8 +653,9 @@ bool spec_cast_undead( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1558,8 +1565,9 @@ bool spec_cast_beholder( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1569,8 +1577,9 @@ bool spec_cast_beholder( CHAR_DATA *ch )
     }
 
 
-    if ( victim == NULL )
-	return FALSE;
+    if ( victim == NULL ) {
+	    return FALSE;
+    }
 
         switch ( dice(1,16) )
 	{
@@ -1601,8 +1610,9 @@ bool spec_fight_enforcer( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1612,8 +1622,9 @@ bool spec_fight_enforcer( CHAR_DATA *ch )
     }
 
 
-    if ( victim == NULL )
-	return FALSE;
+    if ( victim == NULL ) {
+	    return FALSE;
+    }
 
         switch ( dice(1,16) )
 	{
@@ -1646,8 +1657,9 @@ bool spec_fight_invader( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1657,8 +1669,9 @@ bool spec_fight_invader( CHAR_DATA *ch )
     }
 
 
-    if ( victim == NULL )
-	return FALSE;
+    if ( victim == NULL ) {
+	    return FALSE;
+    }
 
         switch ( dice(1,16) )
 	{
@@ -1700,8 +1713,9 @@ bool spec_fight_ivan( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1711,8 +1725,9 @@ bool spec_fight_ivan( CHAR_DATA *ch )
     }
 
 
-    if ( victim == NULL )
-	return FALSE;
+    if ( victim == NULL ) {
+	    return FALSE;
+    }
 
         switch ( dice(1,16) )
 	{
@@ -1749,8 +1764,9 @@ bool spec_fight_seneschal( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1760,8 +1776,9 @@ bool spec_fight_seneschal( CHAR_DATA *ch )
     }
 
 
-    if ( victim == NULL )
-	return FALSE;
+    if ( victim == NULL ) {
+	    return FALSE;
+    }
 
         switch ( dice(1,16) )
 	{
@@ -1797,8 +1814,9 @@ bool spec_fight_powerman( CHAR_DATA *ch )
     CHAR_DATA *victim;
     CHAR_DATA *v_next;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     ch->cabal = CABAL_BATTLE;
 
@@ -1842,8 +1860,9 @@ bool spec_fight_protector( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1853,8 +1872,9 @@ bool spec_fight_protector( CHAR_DATA *ch )
     }
 
 
-    if ( victim == NULL )
-	return FALSE;
+    if ( victim == NULL ) {
+	    return FALSE;
+    }
 
         switch ( dice(1,16) )
 	{
@@ -1887,8 +1907,9 @@ bool spec_fight_lionguard( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {
@@ -1940,8 +1961,9 @@ bool spec_fight_hunter( CHAR_DATA *ch )
     char *spell;
     int sn;
 
-    if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING ) {
+	    return FALSE;
+    }
 
     for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
     {

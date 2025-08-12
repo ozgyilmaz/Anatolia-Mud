@@ -1045,8 +1045,9 @@ void do_autolist_col(CHAR_DATA *ch, char *argument)
     send_to_char("[1;34m|[0;37m [0;36mcombine items  ",ch);
     if (IS_SET(ch->comm,COMM_COMBINE))
 	send_to_char("[1;34m|  [1;32mON  [1;34m|\n\r[0;37m",ch);
-    else
+    else {
 	send_to_char("[1;34m|  [1;31mOFF [1;34m|\n\r[0;37m",ch);
+  }
         send_to_char("[1;36m-------------------------\n\r[0;37m",ch);
  
 
@@ -1520,22 +1521,24 @@ void do_look( CHAR_DATA *ch, char *argument )
 	{  /* player can see object */
 	    pdesc = get_extra_descr( arg3, obj->extra_descr );
 	    if ( pdesc != NULL )
+      {
 	    	if (++count == number)
 	    	{
 		    send_to_char( pdesc, ch );
 		    return;
 	    	}
 	    	else continue;
-
+      }
  	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
  	    if ( pdesc != NULL )
+      {
  	    	if (++count == number)
  	    	{	
 		    send_to_char( pdesc, ch );
 		    return;
 	     	}
-		else continue;
-
+		    else continue;
+      }
 	    if ( is_name( arg3, obj->name ) )
 	    	if (++count == number)
 	    	{
@@ -2034,8 +2037,9 @@ void do_score( CHAR_DATA *ch, char *argument )
     case POS_RESTING:
 	send_to_char( "You are resting.",		ch );
     if ( ch->last_fight_time != -1 && !IS_IMMORTAL(ch) &&
-        (current_time - ch->last_fight_time)<FIGHT_DELAY_TIME) 
+        (current_time - ch->last_fight_time)<FIGHT_DELAY_TIME) {
         send_to_char("Your adrenalin is gushing!\n\r",ch);
+    }
 	break;
     case POS_STANDING:
 	send_to_char( "You are standing.",		ch );
@@ -2310,9 +2314,11 @@ void do_time( CHAR_DATA *ch, char *argument )
       return;
 
     sprintf(buf2, "%s", (char *) ctime( &boot_time ));
-    sprintf(buf,"ANATOLIA started up at %s\n\rThe system time is %s.\n\r",
+    int written = snprintf(buf, sizeof(buf),"ANATOLIA started up at %s\n\rThe system time is %s.\n\r",
 	buf2, (char *) ctime( &current_time ) );
-
+    if (written >= sizeof(buf)) {
+          bug("do_time(): output truncated.",0);
+      }
     send_to_char( buf, ch );
     return;
 }
@@ -2529,8 +2535,8 @@ void do_whois (CHAR_DATA *ch, char *argument)
 
 	    if (IS_TRUSTED(ch,LEVEL_IMMORTAL) || ch==wch || 
                       wch->level >= LEVEL_HERO)
-
-	      sprintf(buf, "[%2d %s %s] %s%s%s%s%s\n\r",
+      {
+	      int written = snprintf(buf, sizeof(buf), "[%2d %s %s] %s%s%s%s%s\n\r",
 		      wch->level,
 		      RACE(wch) < MAX_PC_RACE ? 
 		        pc_race_table[RACE(wch)].who_name: "     ",
@@ -2540,10 +2546,14 @@ void do_whois (CHAR_DATA *ch, char *argument)
 		      act_buf,
 		      wch->name, 
 		      titlebuf);
-	    
+        if (written >= sizeof(buf)) {
+          bug("do_whois()-1: output truncated.",0);
+        }
+	    }
 
 		else
-	  sprintf( buf, "[%s %s    ] %s%s%s%s%s\n\r",
+    {
+	  int written = snprintf(buf, sizeof(buf), "[%s %s    ] %s%s%s%s%s\n\r",
 		(get_curr_stat(wch, STAT_CHA) < 18 ) ? level_buf : "  ",
  		      RACE(wch) < MAX_PC_RACE ? 
  		        pc_race_table[RACE(wch)].who_name: "     ",
@@ -2554,7 +2564,10 @@ void do_whois (CHAR_DATA *ch, char *argument)
  		      IS_SET(wch->act,PLR_WANTED) ? "(WANTED) " : "",
  		      wch->name, 
 		      titlebuf);
-
+    if (written >= sizeof(buf)) {
+          bug("do_whois()-2: output truncated.",0);
+      }
+    }
 	    strcat(output,buf);
 	}
     }
@@ -2913,8 +2926,8 @@ void do_who( CHAR_DATA *ch, char *argument )
 
 	if (IS_TRUSTED(ch,LEVEL_IMMORTAL) || ch==wch ||
                    wch->level >= LEVEL_HERO || (get_curr_stat(wch, STAT_CHA) < 18 ) )
-
-	  sprintf( buf, "[%2d %s %s] %s%s%s%s%s\n\r",
+  {
+	  int written = snprintf( buf, sizeof(buf), "[%2d %s %s] %s%s%s%s%s\n\r",
 	    wch->level,
 	    RACE(wch) < MAX_PC_RACE ? pc_race_table[RACE(wch)].who_name 
 				    : "     ",
@@ -2925,9 +2938,13 @@ void do_who( CHAR_DATA *ch, char *argument )
 	    act_buf,
 	    wch->name,
 	    titlebuf);
-
+    if (written >= sizeof(buf)) {
+          bug("do_who()-1: output truncated.",0);
+      }
+  }
 	else
-	  sprintf( buf, "[%s %s    ] %s%s%s%s%s\n\r",
+  {
+	  int written = snprintf( buf,sizeof(buf), "[%s %s    ] %s%s%s%s%s\n\r",
 		(get_curr_stat(wch, STAT_CHA) < 18 ) ? level_buf : "  ",
 	    RACE(wch) < MAX_PC_RACE ? pc_race_table[RACE(wch)].who_name 
 				    : "     ",
@@ -2936,8 +2953,11 @@ void do_who( CHAR_DATA *ch, char *argument )
 	    cabalbuf,
 	    act_buf,
 	    wch->name,
-	    titlebuf); 
-
+	    titlebuf);
+    if (written >= sizeof(buf)) {
+          bug("do_who()-2: output truncated.",0);
+      }
+  }
 	strcat(output,buf);
     }
 
@@ -5315,8 +5335,8 @@ void do_who_col( CHAR_DATA *ch, char *argument )
 
 	if (IS_TRUSTED(ch,LEVEL_IMMORTAL) || ch==wch ||
                    wch->level >= LEVEL_HERO)
-
-	  sprintf( buf, "[%2d %s %s] %s%s%s%s%s\n\r",
+  {
+	  int written = snprintf(buf, sizeof(buf), "[%2d %s %s] %s%s%s%s%s\n\r",
 	    wch->level,
 	    RACE(wch) < MAX_PC_RACE ? pc_race_table[RACE(wch)].who_name 
 				    : "     ",
@@ -5326,10 +5346,14 @@ void do_who_col( CHAR_DATA *ch, char *argument )
 	    act_buf,
 	    wch->name,
 	    titlebuf);
-
+      if (written >= sizeof(buf)) {
+          bug("do_who_col()-1: output truncated.",0);
+      }
+  }
 	else
+  {
 /*	  sprintf( buf, "[%s %s %s] %s%s%s%s%s\n\r",	*/
-	  sprintf( buf, "[%s %s    ] %s%s%s%s%s\n\r",
+	  int written = snprintf(buf, sizeof(buf), "[%s %s    ] %s%s%s%s%s\n\r",
 		(get_curr_stat(wch, STAT_CHA) < 18 ) ? level_buf : "  ",
 	    RACE(wch) < MAX_PC_RACE ? pc_race_table[RACE(wch)].who_name 
 				    : "     ",
@@ -5338,8 +5362,11 @@ void do_who_col( CHAR_DATA *ch, char *argument )
 	    cabalbuf,
 	    act_buf,
 	    wch->name,
-	    titlebuf); 
-
+	    titlebuf);
+    if (written >= sizeof(buf)) {
+          bug("do_who_col()-2: output truncated.",0);
+      }
+  }
 	strcat(output,buf);
     }
 
@@ -5633,8 +5660,7 @@ void do_nscore( CHAR_DATA *ch, char *argument )
 	 return;
 	}
 
-    sprintf( buf, "\n\r
-      /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/~~\\\n\r");
+    sprintf( buf, "\n\r/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/~~\\\n\r");
     send_to_char( buf, ch);
     sprintf(titlebuf,"%s",
 		IS_NPC(ch) ? "Believer of Chronos." : ch->pcdata->title);
@@ -5857,8 +5883,7 @@ void do_nscore_col( CHAR_DATA *ch, char *argument )
    char titlebuf[MAX_INPUT_LENGTH]; 
    int ekle=0;
     
-    sprintf( buf, "%s\n\r
-      /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/~~\\\n\r"
+    sprintf( buf, "%s\n\r/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/~~\\\n\r"
 	,CLR_GREEN_BOLD);
     send_to_char( buf, ch);
     sprintf(titlebuf,"%s",

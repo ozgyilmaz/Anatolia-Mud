@@ -1188,53 +1188,55 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
 
     for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
     {
-	if (obj->wear_loc == -1 || obj->wear_loc == WEAR_STUCK_IN)
-	    continue;
+        if (obj->wear_loc == -1 || obj->wear_loc == WEAR_STUCK_IN) {
+            continue;
+        }
 
-            for (paf = obj->affected; paf != NULL; paf = paf->next)
-            if (paf->where == where && paf->bitvector == vector)
+        for (paf = obj->affected; paf != NULL; paf = paf->next) {
+        if (paf->where == where && paf->bitvector == vector)
+        {
+            switch (where)
             {
-                switch (where)
-                {
-                    case TO_AFFECTS:
-                        SET_BIT(ch->affected_by,vector);
-                        break;
-                    case TO_IMMUNE:
-                        SET_BIT(ch->imm_flags,vector);
-                        break;
-		    case TO_ACT_FLAG:
-		        SET_BIT(ch->act,paf->bitvector);
-		        break;
-                    case TO_RESIST:
-                        SET_BIT(ch->res_flags,vector);
-                        break;
-                    case TO_VULN:
-                        SET_BIT(ch->vuln_flags,vector);
-                  	break;
-                    case TO_DETECTS:
-                        SET_BIT(ch->detection,vector);
-                  	break;
-		    case TO_RACE:
-		    	if (RACE(ch) == ORG_RACE(ch)) 
-		    {
-		     RACE(ch) = paf->modifier<MAX_PC_RACE ? paf->modifier:1; 
-		     REMOVE_BIT(ch->affected_by,race_table[ORG_RACE(ch)].det);
-		     SET_BIT(ch->affected_by,race_table[RACE(ch)].det);
-	     	     REMOVE_BIT(ch->affected_by,race_table[ORG_RACE(ch)].aff);
-		     SET_BIT(ch->affected_by,race_table[RACE(ch)].aff);
-		     REMOVE_BIT(ch->imm_flags,race_table[ORG_RACE(ch)].imm);
-		     SET_BIT(ch->imm_flags,race_table[RACE(ch)].imm);
-		     REMOVE_BIT(ch->res_flags,race_table[ORG_RACE(ch)].res);
-		     SET_BIT(ch->res_flags,race_table[RACE(ch)].res);
-		     REMOVE_BIT(ch->vuln_flags,race_table[ORG_RACE(ch)].vuln);
-		     SET_BIT(ch->vuln_flags,race_table[RACE(ch)].vuln);
-		     ch->form	= race_table[RACE(ch)].form;
-		     ch->parts	= race_table[RACE(ch)].parts;
-		    }
-		        break;
-                }
-                return;
+                case TO_AFFECTS:
+                    SET_BIT(ch->affected_by,vector);
+                    break;
+                case TO_IMMUNE:
+                    SET_BIT(ch->imm_flags,vector);
+                    break;
+        case TO_ACT_FLAG:
+            SET_BIT(ch->act,paf->bitvector);
+            break;
+                case TO_RESIST:
+                    SET_BIT(ch->res_flags,vector);
+                    break;
+                case TO_VULN:
+                    SET_BIT(ch->vuln_flags,vector);
+                break;
+                case TO_DETECTS:
+                    SET_BIT(ch->detection,vector);
+                break;
+        case TO_RACE:
+            if (RACE(ch) == ORG_RACE(ch)) 
+        {
+            RACE(ch) = paf->modifier<MAX_PC_RACE ? paf->modifier:1; 
+            REMOVE_BIT(ch->affected_by,race_table[ORG_RACE(ch)].det);
+            SET_BIT(ch->affected_by,race_table[RACE(ch)].det);
+                REMOVE_BIT(ch->affected_by,race_table[ORG_RACE(ch)].aff);
+            SET_BIT(ch->affected_by,race_table[RACE(ch)].aff);
+            REMOVE_BIT(ch->imm_flags,race_table[ORG_RACE(ch)].imm);
+            SET_BIT(ch->imm_flags,race_table[RACE(ch)].imm);
+            REMOVE_BIT(ch->res_flags,race_table[ORG_RACE(ch)].res);
+            SET_BIT(ch->res_flags,race_table[RACE(ch)].res);
+            REMOVE_BIT(ch->vuln_flags,race_table[ORG_RACE(ch)].vuln);
+            SET_BIT(ch->vuln_flags,race_table[RACE(ch)].vuln);
+            ch->form	= race_table[RACE(ch)].form;
+            ch->parts	= race_table[RACE(ch)].parts;
+        }
+            break;
             }
+            return;
+        }
+        }
 
         if (obj->enchanted)
 	    continue;
@@ -1486,14 +1488,14 @@ bool is_affected( CHAR_DATA *ch, int sn )
 void affect_join( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_old;
-    bool found;
 
-    found = FALSE;
     for ( paf_old = ch->affected; paf_old != NULL; paf_old = paf_old->next )
     {
 	if ( paf_old->type == paf->type )
 	{
-	    paf->level = (paf->level += paf_old->level) / 2;
+        paf->level += paf_old->level;
+        paf->level /= 2;
+
 	    paf->duration += paf_old->duration;
 	    paf->modifier += paf_old->modifier;
 	    affect_remove( ch, paf_old );
@@ -1875,8 +1877,8 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
     old_wear 		 = obj->wear_loc; 
     obj->wear_loc	 = -1;
 
-    if (!obj->enchanted)
-	for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
+    if (!obj->enchanted) {
+	for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next ) {
 	    if ( paf->location == APPLY_SPELL_AFFECT )
 	    {
 	        for ( lpaf = ch->affected; lpaf != NULL; lpaf = lpaf_next )
@@ -1896,6 +1898,8 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
 	        affect_modify( ch, paf, FALSE );
 		affect_check(ch,paf->where,paf->bitvector);
 	    }
+    }
+    }
 
     for ( paf = obj->affected; paf != NULL; paf = paf->next )
 	if ( paf->location == APPLY_SPELL_AFFECT )
@@ -2017,11 +2021,14 @@ void obj_to_room( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex )
     obj->carried_by		= NULL;
     obj->in_obj			= NULL;
 
-    if ( IS_WATER(pRoomIndex) )
-	if ( may_float( obj ) )
+    if ( IS_WATER(pRoomIndex) ) {
+	if ( may_float( obj ) ) {
 	  obj->water_float = -1;
-	else
+    }
+	else {
 	  obj->water_float = floating_time( obj );
+    }
+    }
 
     if (obj->pIndexData->vnum < 600)
     {
@@ -3774,14 +3781,13 @@ bool is_affected_room( ROOM_INDEX_DATA *room, int sn )
 void affect_join_room( ROOM_INDEX_DATA *room, AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_old;
-    bool found;
 
-    found = FALSE;
     for ( paf_old = room->affected; paf_old != NULL; paf_old = paf_old->next )
     {
 	if ( paf_old->type == paf->type )
 	{
-	    paf->level = (paf->level += paf_old->level) / 2;
+	    paf->level += paf_old->level;
+        paf->level /= 2;
 	    paf->duration += paf_old->duration;
 	    paf->modifier += paf_old->modifier;
 	    affect_remove_room( room, paf_old );
@@ -4097,8 +4103,15 @@ void remove_mind(CHAR_DATA *ch, char *str)
    mind = one_argument(mind,arg);
    if (!is_name(str,arg))  
    {
-    if (buf[0] == '\0') strcpy(buff,arg);
-    else sprintf(buff,"%s %s",buf,arg);
+    if (buf[0] == '\0') {
+        strcpy(buff,arg);
+    }
+    else {
+        int written = snprintf(buff, sizeof(buff),"%s %s",buf,arg);
+        if (written >= sizeof(buff)) {
+            bug("add_mind()-1: output truncated.",0);
+        }
+    }
     strcpy(buf,buff);
    }
   }

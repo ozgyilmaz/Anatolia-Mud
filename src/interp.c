@@ -607,8 +607,9 @@ void interpret( CHAR_DATA *ch, char *argument, bool is_order )
 
           /* prevent ghosts from doing a bunch of commands */
           if (IS_SET(ch->act, PLR_GHOST) && !IS_NPC(ch)
-              && !(cmd_table[cmd].extra & CMD_GHOST) )
+              && !(cmd_table[cmd].extra & CMD_GHOST) ) {
             continue;
+          }
 
 	    found = TRUE;
 	    break;

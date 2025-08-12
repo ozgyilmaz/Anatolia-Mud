@@ -1,8 +1,9 @@
 CC      = gcc
-PROF    = -O 
+PROF    = -O -g
 NOCRYPT =
-C_FLAGS =  -g -Wall -D__hpux $(PROF) $(NOCRYPT)
-L_FLAGS =  $(PROF)
+C_FLAGS =  -Wall $(PROF) $(NOCRYPT)
+L_FLAGS =  $(PROF) -rdynamic
+LIBS    = -lcrypt
 
 O_FILES = act_comm.o act_hera.o act_info.o act_move.o act_obj.o act_wiz.o \
           ban.o comm.o const.o db.o db2.o effects.o fight.o flags.o handler.o \
@@ -10,12 +11,21 @@ O_FILES = act_comm.o act_hera.o act_info.o act_move.o act_obj.o act_wiz.o \
           mob_prog.o note.o obj_prog.o quest.o recycle.o save.o  skills.o \
           special.o tables.o update.o
 
+# Vars for dependency files
+DEP_FILES = $(O_FILES:.o=.d)
+
+# Default target
 anatolia: $(O_FILES)
 	rm -f anatolia
-	$(CC) $(L_FLAGS) -o anatolia $(O_FILES)
+	$(CC) $(L_FLAGS) -o anatolia $(O_FILES) $(LIBS)
 
-.c.o: merc.h
-	$(CC) -c $(C_FLAGS) $<
+# Pattern rule for compiling .c to .o with header dependency
+%.o: %.c merc.h
+	$(CC) -c $(C_FLAGS) $< -o $@
+	$(CC) -M $(C_FLAGS) $< > $(<:.c=.d)
+
+# Include dependency files, ignore errors if files don't exist yet
+-include $(DEP_FILES)
 
 clean: 
-	rm -f *.o anatolia
+	rm -f $(O_FILES) $(DEP_FILES) anatolia

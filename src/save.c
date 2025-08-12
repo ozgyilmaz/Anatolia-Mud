@@ -189,7 +189,6 @@ void fwrite_char( CHAR_DATA *ch, FILE *fp )
 
     fprintf( fp, "Name %s~\n",	ch->name		);
     fprintf( fp, "Id   %ld\n", ch->id			);
-    fprintf( fp, "LogO %ld\n",	current_time		);
     fprintf( fp, "Vers %d\n",   7			);
     fprintf( fp, "Etho %d\n",   ch->ethos		);
     fprintf( fp, "Home %d\n",   ch->hometown		);
@@ -291,15 +290,6 @@ void fwrite_char( CHAR_DATA *ch, FILE *fp )
 	ch->perm_stat[STAT_CON],
 	ch->perm_stat[STAT_CHA] );
 
-/*
-    fprintf (fp, "AMod %d %d %d %d %d %d\n",
-	ch->mod_stat[STAT_STR],
-	ch->mod_stat[STAT_INT],
-	ch->mod_stat[STAT_WIS],
-	ch->mod_stat[STAT_DEX],
-	ch->mod_stat[STAT_CON],
-	ch->mod_stat[STAT_CHA] );
-*/
 
 	fprintf( fp, "Pass %s~\n",	ch->pcdata->pwd		);
 	if (ch->pcdata->bamfin[0] != '\0')
@@ -721,7 +711,10 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
 	fclose(fp);
-	sprintf(buf,"gzip -dfq %s",strsave);
+	int written = snprintf(buf, sizeof(buf),"gzip -dfq %s",strsave);
+	if (written >= sizeof(buf)) {
+		bug("load_char_obj()-1: output truncated.",0);
+	}
 	system(buf);
     }
     #endif
@@ -776,10 +769,16 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
     /* initialize race */
     if (found)
     {
-	if (ORG_RACE(ch) == 0)
-	    ORG_RACE(ch) = race_lookup("human");
-	if (RACE(ch) == 0)
-	    RACE(ch) = race_lookup("human");
+	if (IS_NPC(ch)) {
+    if (ch->pIndexData->race == 0)
+        ch->pIndexData->race = race_lookup("human");
+	} else {
+		if (ch->pcdata->race == 0)
+			ch->pcdata->race = race_lookup("human");
+	}
+
+	if (ch->race == 0)
+		ch->race = race_lookup("human");
 
 	ch->size = pc_race_table[ORG_RACE(ch)].size;
 	ch->dam_type = 17; /*punch */
@@ -876,8 +875,6 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
     bool fMatch;
     bool fPlayLog = FALSE;
     int count = 0;
-    int lastlogoff = current_time;
-    long dev_null;
 
 
     sprintf(buf,"Loading %s.",ch->name);
@@ -899,8 +896,6 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 
 	case 'A':
 	    KEY( "Act",		ch->act,		fread_flag( fp ) );
-	    KEY( "AffectedBy",	dev_null,		fread_flag( fp ) );
-	    KEY( "AfBy",	dev_null,		fread_flag( fp ) );
 	    KEY( "Alignment",	ch->alignment,		fread_number( fp ) );
 	    KEY( "Alig",	ch->alignment,		fread_number( fp ) );
 	    KEY( "AntKilled",	ch->pcdata->anti_killed,fread_number( fp ) );
@@ -1003,15 +998,6 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
                 break;
             }
 
-	    if ( !str_cmp( word, "AttrMod"  ) || !str_cmp(word,"AMod"))
-	    {
-		int stat;
-		for (stat = 0; stat < MAX_STATS; stat ++)
-		   dev_null = fread_number(fp);
-		fMatch = TRUE;
-		break;
-	    }
-
 	    if ( !str_cmp( word, "AttrPerm" ) || !str_cmp(word,"Attr"))
 	    {
 		int stat;
@@ -1070,12 +1056,9 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 	    break;
 
 	case 'D':
-	    KEY( "Damroll",	dev_null,		fread_number( fp ) );
-	    KEY( "Dam",		dev_null,		fread_number( fp ) );
 	    KEY( "Description",	ch->description,	fread_string( fp ) );
 	    KEY( "Desc",	ch->description,	fread_string( fp ) );
 	    KEY( "Dead",	ch->pcdata->death,	fread_number( fp ) );
-    	    KEY( "Detect",	dev_null,		fread_flag(fp)     );
 	    break;
 
 	case 'E':
@@ -1117,8 +1100,6 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 	    break;
 
 	case 'H':
-	    KEY( "Hitroll",	dev_null,		fread_number( fp ) );
-	    KEY( "Hit",		dev_null,		fread_number( fp ) );
 	    KEY( "Home",	ch->hometown,		fread_number( fp ) );
 	    KEY( "Haskilled",	ch->pcdata->has_killed, fread_number( fp ) );
 
@@ -1155,7 +1136,6 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 	    KEY( "Level",	ch->level,		fread_number( fp ) );
 	    KEY( "Lev",		ch->level,		fread_number( fp ) );
 	    KEY( "Levl",	ch->level,		fread_number( fp ) );
-	    KEY( "LogO",	lastlogoff,		fread_number( fp ) );
 	    KEY( "LongDescr",	ch->long_descr,		fread_string( fp ) );
 	    KEY( "LnD",		ch->long_descr,		fread_string( fp ) );
 	    break;
@@ -1236,7 +1216,10 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 	    if ( !str_cmp( word, "Race" ) )
 	    {
 		RACE(ch) = race_lookup(fread_string(fp));
-		ORG_RACE(ch) = RACE(ch);
+		if (IS_NPC(ch))
+			ch->pIndexData->race = ch->race;
+		else
+			ch->pcdata->race = ch->race;
 		fMatch = TRUE;
 		break;
 	    }
@@ -1252,8 +1235,6 @@ void fread_char( CHAR_DATA *ch, FILE *fp )
 	    break;
 
 	case 'S':
-	    KEY( "SavingThrow",	dev_null,		fread_number( fp ) );
-	    KEY( "Save",	dev_null,		fread_number( fp ) );
 	    KEY( "Scro",	ch->lines,		fread_number( fp ) );
 	    KEY( "Sex",		ch->sex,		fread_number( fp ) );
 	    KEY( "ShortDescr",	ch->short_descr,	fread_string( fp ) );
@@ -1532,7 +1513,10 @@ void fread_pet( CHAR_DATA *ch, FILE *fp )
 	    if ( !str_cmp( word, "Race" ) )
 	    {
 		RACE(pet) = race_lookup(fread_string(fp));
-		ORG_RACE(pet) = RACE(pet);
+		if (IS_NPC(pet))
+			pet->pIndexData->race = pet->race;
+		else
+			pet->pcdata->race = pet->race;
 		fMatch = TRUE;
 		break;
 	    }

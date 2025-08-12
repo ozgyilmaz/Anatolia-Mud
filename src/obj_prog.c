@@ -1391,8 +1391,7 @@ void greet_prog_coconut(OBJ_DATA *obj, CHAR_DATA *ch)
 
 void get_prog_coconut(OBJ_DATA *obj, CHAR_DATA *ch)
 {
-  send_to_char("You hold the coconut up to your ear and suddenly you hear 
-the faint\n\rroar of galloping horses.\n\r", ch);
+  send_to_char("You hold the coconut up to your ear and suddenly you hear the faint\n\rroar of galloping horses.\n\r", ch);
   act("$n holds a coconut up to $s ear.", ch, NULL, NULL, TO_ROOM);
 }
 

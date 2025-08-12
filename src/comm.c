@@ -188,16 +188,7 @@ int	socket		args( ( int domain, int type, int protocol ) );
 #endif
 
 #if	defined(linux)
-int accept __P ((int __sockfd, __const struct sockaddr *__peer,	int *__paddrlen));
-int bind __P ((int __sockfd, __const struct sockaddr *__my_addr,int __addrlen));
-/*
-int	accept		args( ( int s, struct sockaddr *addr, int *addrlen ) );
-int	bind		args( ( int s, struct sockaddr *name, int namelen ) );
-*/
 int	close		args( ( int fd ) );
-int	getpeername	args( ( int s, struct sockaddr *name, int *namelen ) );
-int	getsockname	args( ( int s, struct sockaddr *name, int *namelen ) );
-int	gettimeofday	args( ( struct timeval *tp, struct timezone *tzp ) );
 int	listen		args( ( int s, int backlog ) );
 int	read		args( ( int fd, char *buf, int nbyte ) );
 int	select		args( ( int width, fd_set *readfds, fd_set *writefds,
@@ -915,7 +906,7 @@ void init_descriptor( int control )
     struct sockaddr_in sock;
     struct hostent *from;
     int desc;
-    int size;
+    socklen_t size;
 
     size = sizeof(sock);
     getsockname( control, (struct sockaddr *) &sock, &size );
@@ -1874,7 +1865,7 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 	}
  
 
-	if ( ch->pcdata->pwd[0] == (int) NULL)
+	if ( ch->pcdata->pwd[0] == '\0')
 	{
 	    write_to_buffer( d, "Warning! Null password!\n\r",0 );
 	    write_to_buffer( d, "Please report old password with bug.\n\r",0);
@@ -2203,7 +2194,10 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 	    break;
 	}
 
-        ORG_RACE(ch) = race;
+    if (IS_NPC(ch))
+    ch->pIndexData->race = race;
+	else
+    ch->pcdata->race = race;
 	RACE(ch) = race;
 	for (i=0; i < MAX_STATS;i++)
 	      ch->mod_stat[i] = 0;
@@ -2425,8 +2419,10 @@ sprintf(buf,"Str:%s  Int:%s  Wis:%s  Dex:%s  Con:%s Cha:%s \n\r Accept (Y/N)? ",
 	
       case CON_PICK_HOMETOWN:
 	sprintf(buf1,", [O]fcol");
-	sprintf(buf,"[M]idgaard, [N]ew Thalos%s?",
-		IS_NEUTRAL(ch) ? buf1 : "");
+	int written = snprintf(buf, sizeof(buf),"[M]idgaard, [N]ew Thalos%s?",IS_NEUTRAL(ch) ? buf1 : "");
+	if (written >= sizeof(buf)) {
+		bug("nanny()-1: output truncated.",0);
+	}
 	if ( ch->endur )
 	 {
 	  ch->endur = 0;
@@ -2768,7 +2764,7 @@ bool check_parse_name( char *name )
      */
     {
 	char *pc;
-	bool fIll,adjcaps = FALSE,cleancaps = FALSE;
+	bool fIll;
  	int total_caps = 0;
 
 	fIll = TRUE;
@@ -2779,13 +2775,8 @@ bool check_parse_name( char *name )
 
 	    if ( isupper(*pc)) /* ugly anti-caps hack */
 	    {
-		if (adjcaps)
-		    cleancaps = TRUE;
 		total_caps++;
-		adjcaps = TRUE;
 	    }
-	    else
-		adjcaps = FALSE;
 
 	    if ( LOWER(*pc) != 'i' && LOWER(*pc) != 'l' )
 		fIll = FALSE;
@@ -3063,8 +3054,9 @@ void show_string(struct descriptor_data *d, char *input)
 	{
 	    *scan = '\0';
 	    write_to_buffer(d,buffer,strlen(buffer));
-	    for (chk = d->showstr_point; isspace(*chk); chk++);
-	    {
+	    for (chk = d->showstr_point; isspace(*chk); chk++) {
+		}
+
 		if (!*chk)
 		{
 		    if (d->showstr_head)
@@ -3073,8 +3065,7 @@ void show_string(struct descriptor_data *d, char *input)
             		d->showstr_head = 0;
         	    }
         	    d->showstr_point  = 0;
-    		}
-	    }
+    	}
 	    return;
 	}
     }
@@ -3319,7 +3310,7 @@ FILE *fp;
 AREA_DATA *area;
 extern AREA_DATA *area_first;
 
-    system("rm -f area_stat.txt");
+    int _ret __attribute__((unused)) = system("rm -f area_stat.txt");
     fp = fopen(AREASTAT_FILE, "a");
     fprintf(fp,"\nBooted %sArea popularity statistics (in char * ticks)\n",
             (char *) ctime( &boot_time ));

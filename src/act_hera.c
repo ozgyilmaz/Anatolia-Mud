@@ -53,6 +53,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
+#include <stdint.h>
 #include "merc.h"
 
 /* command procedures needed */
@@ -340,14 +341,6 @@ void do_settraps( CHAR_DATA *ch, char *argument )
  *  Modified by Turtle for Merc22 (07-Nov-94).                             *
  *  Adopted to ANATOLIA by Chronos.                                        *
  ***************************************************************************/
-
-#if	defined(linux)
-void bcopy(const void *src,void *dest,int n);
-void bzero(void *s,int n);
-#else
-void bcopy(char *s1,char* s2,int len);
-void bzero(char *sp,int len);
-#endif
 
 extern const char * dir_name[];
 
@@ -717,8 +710,8 @@ int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch,
 	      
 			  /* ancestor for first layer is the direction */
 			  hash_enter( &x_room, tmp_room,
-				     ((int)hash_find(&x_room,q_head->room_nr)
-				      == -1) ? (void*)(i+1)
+				     ((int)(intptr_t)hash_find(&x_room,q_head->room_nr)
+				      == -1) ? (void*)(intptr_t)(i+1)
 				     : hash_find(&x_room,q_head->room_nr));
 			}
 		    }
@@ -732,7 +725,7 @@ int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch,
 			  free(q_head);
 			}
 		      /* return direction if first layer */
-		      if ((int)hash_find(&x_room,tmp_room)==-1)
+		      if ((int)(intptr_t)hash_find(&x_room,tmp_room)==-1)
 			{
 			  if (x_room.buckets)
 			    {
@@ -746,7 +739,7 @@ int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch,
 			  /* else return the ancestor */
 			  int i;
 			  
-			  i = (int)hash_find(&x_room,tmp_room);
+			  i = (int)(intptr_t)hash_find(&x_room,tmp_room);
 			  if (x_room.buckets)
 			    {
 			      /* junk left over from a previous track */
@@ -2024,11 +2017,12 @@ int parsebet (const int currentbet, const char *argument)
       else
         {
         sprintf (buf2,"considering: * x \n\r");
-        if ((*stringptr == '*') || (*stringptr == 'x')) /* multiply */
+        if ((*stringptr == '*') || (*stringptr == 'x')) {/* multiply */
           if (strlen (stringptr) == 1) /* only x specified, assume default */
             newbet = currentbet * 2 ; /* default: twice */
           else /* user specified a number */
             newbet = currentbet * atoi (++stringptr); /* cut off the first char */
+        }
         }
   }
 
@@ -2056,7 +2050,10 @@ void auction_update (void)
             else
                 sprintf (buf, "%s: going %s (not bet received yet).", auction->item->short_descr,
                      ((auction->going == 1) ? "once" : "twice"));
-	    sprintf(bufc,"%s%s%s",CLR_CYAN,buf,CLR_WHITE_BOLD);
+      int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_CYAN,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-5: output truncated.",0);
+            }
             talk_auction (bufc);
             break;
 
@@ -2068,7 +2065,10 @@ void auction_update (void)
                     auction->item->short_descr,
                     IS_NPC(auction->buyer) ? auction->buyer->short_descr : auction->buyer->name,
                     auction->bet);
-	        sprintf(bufc,"%s%s%s",CLR_CYAN,buf,CLR_WHITE_BOLD);
+          int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_CYAN,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-6: output truncated.",0);
+            }
                 talk_auction(bufc);
                 obj_to_char (auction->item,auction->buyer);
                 act ("The auctioneer appears before you in a puff of smoke and hands you $p.",
@@ -2084,10 +2084,16 @@ void auction_update (void)
             else /* not sold */
             {
                 sprintf (buf, "No bets received for %s - object has been removed.",auction->item->short_descr);
-		sprintf(bufc,"%s%s%s",CLR_CYAN,buf,CLR_WHITE_BOLD);
+            int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_CYAN,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-8: output truncated.",0);
+            }
                 talk_auction(bufc);
                 sprintf (buf, "The auctioneer puts the unsold item to his pit.");
-		sprintf(bufc,"%s%s%s",CLR_RED,buf,CLR_WHITE_BOLD);
+            written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_RED,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-7: output truncated.",0);
+            }
                 talk_auction(bufc);
                 extract_obj(auction->item);
                 auction->item = NULL; /* clear auction */
@@ -2129,7 +2135,7 @@ void do_auction (CHAR_DATA *ch, char *argument)
 	 }
 	}
 
-    if (arg1[0] == '\0')
+    if (arg1[0] == '\0') {
         if (auction->item != NULL)
         {
             /* show item data here */
@@ -2137,7 +2143,10 @@ void do_auction (CHAR_DATA *ch, char *argument)
                 sprintf (buf, "Current bet on this item is %d gold.\n\r",auction->bet);
             else
                 sprintf (buf, "No bets on this item have been received.\n\r");
-	    sprintf(bufc,"%s%s%s",CLR_GREEN,buf,CLR_WHITE_BOLD);
+	    int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_GREEN,buf,CLR_WHITE_BOLD);
+      if (written >= sizeof(bufc)) {
+        bug("do_auction()-1: output truncated.",0);
+      }
             send_to_char (bufc,ch);
 	    spell_identify(0, 0, ch, auction->item,0);
             return;
@@ -2148,6 +2157,7 @@ void do_auction (CHAR_DATA *ch, char *argument)
             send_to_char (bufc,ch);
             return;
         }
+      }
 
     if (!str_cmp(arg1,"off") )
 	{
@@ -2156,7 +2166,7 @@ void do_auction (CHAR_DATA *ch, char *argument)
 	 return;
 	}
 
-    if (IS_IMMORTAL(ch) && !str_cmp(arg1,"stop"))
+    if (IS_IMMORTAL(ch) && !str_cmp(arg1,"stop")) {
     if (auction->item == NULL)
     {
         send_to_char ("There is no auction going on you can stop.\n\r",ch);
@@ -2166,7 +2176,10 @@ void do_auction (CHAR_DATA *ch, char *argument)
     {
         sprintf(buf,"Sale of %s has been stopped by God. Item confiscated.",
                         auction->item->short_descr);
-	sprintf(bufc,"%s%s%s",CLR_WHITE,buf,CLR_WHITE_BOLD);
+  int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_WHITE,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-4: output truncated.",0);
+            }
         talk_auction(bufc);
         obj_to_char(auction->item, auction->seller);
         auction->item = NULL;
@@ -2177,8 +2190,9 @@ void do_auction (CHAR_DATA *ch, char *argument)
         }
         return;
     }
+    }
 
-    if  (!str_cmp(arg1,"bet") ) 
+    if  (!str_cmp(arg1,"bet") ) {
 	if (auction->item != NULL)
         {
             int newbet;
@@ -2223,7 +2237,10 @@ void do_auction (CHAR_DATA *ch, char *argument)
             auction->pulse = PULSE_AUCTION; /* start the auction over again */
 
             sprintf (buf,"A bet of %d gold has been received on %s.\n\r",newbet,auction->item->short_descr);
-	    sprintf(bufc,"%s%s%s",CLR_MAGENTA,buf,CLR_WHITE_BOLD);
+	          int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_MAGENTA,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-2: output truncated.",0);
+            }
             talk_auction (bufc);
             return;
 
@@ -2233,6 +2250,7 @@ void do_auction (CHAR_DATA *ch, char *argument)
         {
             send_to_char ("There isn't anything being auctioned right now.\n\r",ch);
             return;
+        }
         }
 
     /* finally... */
@@ -2283,7 +2301,10 @@ void do_auction (CHAR_DATA *ch, char *argument)
         auction->going = 0;
 
         sprintf(buf, "A new item has been received: %s.", obj->short_descr);
-	sprintf(bufc,"%s%s%s",CLR_YELLOW,buf,CLR_WHITE_BOLD);
+  int written = snprintf(bufc, sizeof(bufc),"%s%s%s",CLR_YELLOW,buf,CLR_WHITE_BOLD);
+            if (written >= sizeof(bufc)) {
+              bug("do_auction()-3: output truncated.",0);
+            }
         talk_auction(bufc);
 
         return;

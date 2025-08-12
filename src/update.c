@@ -1659,7 +1659,7 @@ void obj_update( void )
 	    }
 	}
 
-        pit_count = ++pit_count % 120; /* more or less an hour */
+        pit_count = (pit_count + 1) % 120; /* more or less an hour */
         if (obj->pIndexData->vnum == OBJ_VNUM_PIT &&
             pit_count == 121) {
           for (t_obj = obj->contains; t_obj != NULL; t_obj = next_obj) {
@@ -1731,143 +1731,157 @@ void obj_update( void )
  */
 void aggr_update( void )
 {
-    CHAR_DATA *wch;
-    CHAR_DATA *wch_next;
-    CHAR_DATA *ch;
-    CHAR_DATA *ch_next;
-    CHAR_DATA *vch;
-    CHAR_DATA *vch_next;
-    CHAR_DATA *victim;
-    char buf[MAX_STRING_LENGTH];
+	CHAR_DATA *wch;
+	CHAR_DATA *wch_next;
+	CHAR_DATA *ch;
+	CHAR_DATA *ch_next;
+	CHAR_DATA *vch;
+	CHAR_DATA *vch_next;
+	CHAR_DATA *victim;
+	char buf[MAX_STRING_LENGTH];
 
-    for ( wch = char_list; wch != NULL; wch = wch_next )
-    {
-	if (!IS_VALID(wch))
+	for ( wch = char_list; wch != NULL; wch = wch_next )
 	{
-	  bug("Aggr_update: Invalid char.",0);
-	  break;
-	}
-
-	wch_next = wch->next;
-
-	if (IS_AFFECTED(wch,AFF_BLOODTHIRST) && 
-          IS_AWAKE(wch) && wch->fighting == NULL)
-        {
-          for ( vch = wch->in_room->people;
-               vch != NULL && wch->fighting == NULL; vch = vch_next)
-            {
-              vch_next = vch->next_in_room;
-              if ( wch != vch && can_see(wch,vch) &&
-                  !is_safe_nomessage(wch,vch) )
-                {
-                  act_color("$CMORE BLOOD! MORE BLOOD! MORE BLOOD!!!$c",
-                            wch,NULL,NULL,TO_CHAR,POS_RESTING,CLR_RED);
-                  do_murder(wch,vch->name);
-                }
-            }
-        }
-
-	if ( wch->cabal != CABAL_NONE && IS_NPC(wch))
-	{
-	    for ( ch = wch->in_room->people; ch != NULL; ch = ch_next )
-	    {
-		ch_next	= ch->next_in_room;
-		if ( !IS_NPC(ch) 
-		&& !IS_IMMORTAL(ch)
-		&& ch->cabal != wch->cabal
-		&& ch->fighting == NULL )
-		
-		    multi_hit(wch, ch, TYPE_UNDEFINED);
-		
-	    }
-	    continue;
-	}
-
-	if ( IS_NPC(wch)
-	||   wch->level >= LEVEL_IMMORTAL
-	||   wch->in_room == NULL 
-	||   wch->in_room->area->empty)
-	    continue;
-
-	for ( ch = wch->in_room->people; ch != NULL; ch = ch_next )
-	{
-	    int count;
-
-	    ch_next	= ch->next_in_room;
-
-	    if ( !IS_NPC(ch)
-	    ||   (!IS_SET(ch->act, ACT_AGGRESSIVE) && (ch->last_fought == NULL))
-	    ||   IS_SET(ch->in_room->room_flags,ROOM_SAFE)
-	    ||   IS_AFFECTED(ch,AFF_CALM)
-	    ||   ch->fighting != NULL
-	    ||	 RIDDEN(ch)
-	    ||   IS_AFFECTED(ch, AFF_CHARM)
-	    ||   IS_AFFECTED(ch, AFF_SCREAM)
-	    ||   !IS_AWAKE(ch)
-	    ||   ( IS_SET(ch->act, ACT_WIMPY) && IS_AWAKE(wch) )
-	    ||   !can_see( ch, wch ) 
-	    ||   number_bits(1) == 0
-            ||   is_safe_nomessage(ch,wch))
-
-		continue;
-
-          /* Mad mob attacks! */
-          if ( ch->last_fought == wch )
-	   {
-            sprintf(buf,"%s! Now you die!",
-                    (is_affected(wch,gsn_doppelganger) &&
-                     !IS_SET(ch->act,PLR_HOLYLIGHT))?
-                    PERS(wch->doppel,ch) : PERS(wch,ch));
-            do_yell(ch,buf);
-            wch = check_guard(wch, ch); 
-
-            multi_hit(ch,wch,TYPE_UNDEFINED);
-            continue;
-          }
-
-          if (ch->last_fought != NULL)
-            continue;
-
-	    /*
-	     * Ok we have a 'wch' player character and a 'ch' npc aggressor.
-	     * Now make the aggressor fight a RANDOM pc victim in the room,
-	     *   giving each 'vch' an equal chance of selection.
-	     */
-	    count	= 0;
-	    victim	= NULL;
-	    for ( vch = wch->in_room->people; vch != NULL; vch = vch_next )
-	    {
-		vch_next = vch->next_in_room;
-
-		if ( !IS_NPC(vch)
-		&&   vch->level < LEVEL_IMMORTAL
-		&&   ch->level >= vch->level - 5 
-		&&   ( !IS_SET(ch->act, ACT_WIMPY) || !IS_AWAKE(vch) )
-		&&   can_see( ch, vch ) 
-		&&   vch->class != CLASS_VAMPIRE /* do not attack vampires */
-		&&   !(IS_GOOD(ch) && IS_GOOD(vch)) ) /* good vs good :( */
+		if (!IS_VALID(wch))
 		{
-		    if ( number_range( 0, count ) == 0 )
-			victim = vch;
-		    count++;
+			bug("Aggr_update: Invalid char.",0);
+			break;
 		}
-	    }
 
-	    if ( victim == NULL )
-		continue;
+		wch_next = wch->next;
 
-	    if ( !is_safe_nomessage( ch, victim ) )
-	    {
-              victim = check_guard(victim, ch); 
-	      if (IS_SET(ch->off_flags, OFF_BACKSTAB)
-		  && get_wield_char(ch, FALSE) )
-		multi_hit( ch, victim, gsn_backstab );
-	      else multi_hit( ch, victim, TYPE_UNDEFINED );
-	    }
+		if (IS_AFFECTED(wch,AFF_BLOODTHIRST) && 
+		IS_AWAKE(wch) && wch->fighting == NULL)
+		{
+			for ( vch = wch->in_room->people;
+			vch != NULL && wch->fighting == NULL; vch = vch_next)
+			{
+				vch_next = vch->next_in_room;
+				if ( wch != vch && can_see(wch,vch) &&
+				!is_safe_nomessage(wch,vch) )
+				{
+					act_color("$CMORE BLOOD! MORE BLOOD! MORE BLOOD!!!$c",
+					wch,NULL,NULL,TO_CHAR,POS_RESTING,CLR_RED);
+					do_murder(wch,vch->name);
+				}
+			}
+		}
+
+		if ( wch->cabal != CABAL_NONE && IS_NPC(wch))
+		{
+			for ( ch = wch->in_room->people; ch != NULL; ch = ch_next )
+			{
+				ch_next	= ch->next_in_room;
+				if ( !IS_NPC(ch) 
+				&& !IS_IMMORTAL(ch)
+				&& ch->cabal != wch->cabal
+				&& ch->fighting == NULL )
+				{
+					multi_hit(wch, ch, TYPE_UNDEFINED);
+				}
+
+			}
+			continue;
+		}
+
+		if ( IS_NPC(wch)
+		||   wch->level >= LEVEL_IMMORTAL
+		||   wch->in_room == NULL 
+		||   wch->in_room->area->empty)
+		{
+			continue;
+		}
+
+		for ( ch = wch->in_room->people; ch != NULL; ch = ch_next )
+		{
+			int count;
+
+			ch_next	= ch->next_in_room;
+
+			if ( !IS_NPC(ch)
+			||   (!IS_SET(ch->act, ACT_AGGRESSIVE) && (ch->last_fought == NULL))
+			||   IS_SET(ch->in_room->room_flags,ROOM_SAFE)
+			||   IS_AFFECTED(ch,AFF_CALM)
+			||   ch->fighting != NULL
+			||	 RIDDEN(ch)
+			||   IS_AFFECTED(ch, AFF_CHARM)
+			||   IS_AFFECTED(ch, AFF_SCREAM)
+			||   !IS_AWAKE(ch)
+			||   ( IS_SET(ch->act, ACT_WIMPY) && IS_AWAKE(wch) )
+			||   !can_see( ch, wch ) 
+			||   number_bits(1) == 0
+			||   is_safe_nomessage(ch,wch))
+			{
+				continue;
+			}
+
+			/* Mad mob attacks! */
+			if ( ch->last_fought == wch )
+			{
+				sprintf(buf,"%s! Now you die!",
+				(is_affected(wch,gsn_doppelganger) &&
+				!IS_SET(ch->act,PLR_HOLYLIGHT))?
+				PERS(wch->doppel,ch) : PERS(wch,ch));
+				do_yell(ch,buf);
+				wch = check_guard(wch, ch); 
+
+				multi_hit(ch,wch,TYPE_UNDEFINED);
+				continue;
+			}
+
+			if (ch->last_fought != NULL)
+			{
+				continue;
+			}
+
+			/*
+			* Ok we have a 'wch' player character and a 'ch' npc aggressor.
+			* Now make the aggressor fight a RANDOM pc victim in the room,
+			*   giving each 'vch' an equal chance of selection.
+			*/
+			count	= 0;
+			victim	= NULL;
+			for ( vch = wch->in_room->people; vch != NULL; vch = vch_next )
+			{
+				vch_next = vch->next_in_room;
+
+				if ( !IS_NPC(vch)
+				&&   vch->level < LEVEL_IMMORTAL
+				&&   ch->level >= vch->level - 5 
+				&&   ( !IS_SET(ch->act, ACT_WIMPY) || !IS_AWAKE(vch) )
+				&&   can_see( ch, vch ) 
+				&&   vch->class != CLASS_VAMPIRE /* do not attack vampires */
+				&&   !(IS_GOOD(ch) && IS_GOOD(vch)) ) /* good vs good :( */
+				{
+					if ( number_range( 0, count ) == 0 )
+					{
+						victim = vch;
+					}
+					count++;
+				}
+			}
+
+			if ( victim == NULL ) {
+				continue;
+			}
+
+			if ( !is_safe_nomessage( ch, victim ) )
+			{
+				victim = check_guard(victim, ch); 
+				if (IS_SET(ch->off_flags, OFF_BACKSTAB)
+				&& get_wield_char(ch, FALSE) )
+				{
+					multi_hit( ch, victim, gsn_backstab );
+				}
+				else
+				{
+					multi_hit( ch, victim, TYPE_UNDEFINED );
+				}
+			}
+		}
 	}
-    }
 
-    return;
+	return;
 }
 
 

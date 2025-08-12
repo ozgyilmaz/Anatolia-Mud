@@ -379,8 +379,7 @@ void move_char( CHAR_DATA *ch, int door, bool follow )
      }	    
 
     if ( (IS_AFFECTED( ch, AFF_HIDE ) )
-	 && to_room->sector_type == SECT_FOREST
-         && to_room->sector_type == SECT_FIELD )
+	 && (to_room->sector_type == SECT_FOREST || to_room->sector_type == SECT_FIELD))
     {
 	REMOVE_BIT(ch->affected_by, AFF_HIDE);
 	send_to_char( "You step out of shadows.\n\r", ch );
@@ -1850,8 +1849,9 @@ int forest;
 	check_improve(ch,gsn_hide,TRUE,3);
     }
     else  {
-      if ( IS_AFFECTED(ch, AFF_HIDE) )
-	REMOVE_BIT(ch->affected_by, AFF_HIDE);
+      if ( IS_AFFECTED(ch, AFF_HIDE) ) {
+	    REMOVE_BIT(ch->affected_by, AFF_HIDE);
+    }
 	check_improve(ch,gsn_hide,FALSE,3);
     }
 
@@ -3690,7 +3690,6 @@ void do_shoot( CHAR_DATA *ch, char *argument )
     OBJ_DATA *wield;
     OBJ_DATA *arrow; 
     char arg1[512],arg2[512],buf[512];
-    bool success;
     int chance,direction;
     int range = (ch->level / 10) + 1;
     
@@ -3782,7 +3781,7 @@ void do_shoot( CHAR_DATA *ch, char *argument )
     act( buf, ch, arrow, NULL, TO_ROOM );
 
     obj_from_char(arrow);
-    success = send_arrow(ch,victim,arrow,direction,chance,
+    send_arrow(ch,victim,arrow,direction,chance,
 		dice(wield->value[1],wield->value[2]) );
     check_improve(ch,gsn_bow,TRUE,1);
 }
@@ -3852,7 +3851,6 @@ void do_throw_spear( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
     OBJ_DATA *spear;
     char arg1[512],arg2[512],buf[512];
-    bool success;
     int chance,direction;
     int range = (ch->level / 10) + 1;
     
@@ -3942,7 +3940,7 @@ void do_throw_spear( CHAR_DATA *ch, char *argument )
     act( buf, ch, spear, NULL, TO_ROOM );
 
     obj_from_char(spear);
-    success = send_arrow(ch,victim,spear,direction,chance,
+    send_arrow(ch,victim,spear,direction,chance,
 		dice(spear->value[1],spear->value[2]) );
     check_improve(ch,gsn_spear,TRUE,1);
 }

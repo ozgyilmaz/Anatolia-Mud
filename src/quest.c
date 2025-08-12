@@ -95,7 +95,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
     MOB_INDEX_DATA *questinfo;
     char buf [MAX_STRING_LENGTH];
     char bufvampire[100];
-    char bufsamurai[100];
+    char bufsamurai[MAX_STRING_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
     int sn,trouble_vnum=0,trouble_n;
@@ -216,24 +216,34 @@ void do_quest(CHAR_DATA *ch, char *argument)
 	sprintf(bufvampire,"    50qp.........Vampire skill (vampire)\n\r");
 	bufsamurai[0] = '\0';
 	if ( ch->class == 9 )
-	sprintf(bufsamurai,"%s%s%s",
+	{
+	int written = snprintf(bufsamurai, sizeof(bufsamurai),"%s%s%s",
 		"   100qp.........Katana quest (katana)\n\r",
 		"   100qp.........Second katana quest(sharp)\n\r",
 		"    50qp.........Decrease number of death (death)\n\r");
-	sprintf(buf, "Current Quest Items available for Purchase:\n\r\
-  5000qp.........the silk-adamantite backpack (backpack)\n\r\
-  1000qp.........the Girth of Real Heroism (girth)\n\r\
-  1000qp.........the Ring of Real Heroism (ring)\n\r\
-  1000qp.........the Real Hero's Weapon (weapon)\n\r\
-  1000qp.........100 Practices (practice)\n\r\
-   500qp.........Decanter of Endless Water (decanter)\n\r\
-   500qp.........350,000 gold pieces (gold)\n\r\
-   250qp.........1 constitution (con)\n\r\
-   200qp.........tattoo of your religion (tattoo)\n\r%s%s\
-    50qp.........remove tattoo of your religion (remove)\n\r\
-    50qp.........set religion to none (set)\n\r
-To buy an item, type 'QUEST BUY <item>'.\n\r",
-	bufsamurai, bufvampire);
+	if (written >= sizeof(bufsamurai)) {
+		bug("do_quest()-1: output truncated.",0);
+	}
+	}
+	int written = snprintf(buf, sizeof(buf),
+    "Current Quest Items available for Purchase:\n\r"
+    "  5000qp.........the silk-adamantite backpack (backpack)\n\r"
+    "  1000qp.........the Girth of Real Heroism (girth)\n\r"
+    "  1000qp.........the Ring of Real Heroism (ring)\n\r"
+    "  1000qp.........the Real Hero's Weapon (weapon)\n\r"
+    "  1000qp.........100 Practices (practice)\n\r"
+    "   500qp.........Decanter of Endless Water (decanter)\n\r"
+    "   500qp.........350,000 gold pieces (gold)\n\r"
+    "   250qp.........1 constitution (con)\n\r"
+    "   200qp.........tattoo of your religion (tattoo)\n\r"
+    "%s%s"
+    "    50qp.........remove tattoo of your religion (remove)\n\r"
+    "    50qp.........set religion to none (set)\n\r"
+    "To buy an item, type 'QUEST BUY <item>'.\n\r",
+    bufsamurai, bufvampire);
+	if (written >= sizeof(buf)) {
+		bug("do_quest()-2: output truncated.",0);
+	}
 	send_to_char(buf, ch);
 	return;
     }

@@ -703,10 +703,12 @@ void spell_demon_summon( int sn, int level, CHAR_DATA *ch, void *vo, int target 
 
   if (number_percent() < 40)
     {
-      if ( can_see( demon, ch ) )
-        do_say(demon, "You dare disturb me??!!!");
-      else
-        do_say(demon, "Who dares disturb me??!!!");
+      if ( can_see( demon, ch ) ) {
+        do_say(demon, "You dare disturb me?!");
+      }
+      else {
+        do_say(demon, "Who dares disturb me?!");
+      }
       do_murder(demon, ch->name);
     }
   else {
@@ -1173,11 +1175,13 @@ void spell_nightfall( int sn, int level, CHAR_DATA *ch, void *vo, int target )
       }  
 
   for (light = ch->in_room->contents;light != NULL; light=light->next_content)
+  {
     if (light->item_type == ITEM_LIGHT && light->value[2] != 0) {  
       act("$p flickers and goes out!",ch,light,NULL,TO_CHAR);
       act("$p flickers and goes out!",ch,light,NULL,TO_ROOM);
       light->value[2] = 0; 
     }
+  }
 
     af.where	 = TO_AFFECTS;
     af.type      = sn;
@@ -1228,7 +1232,7 @@ if (mirrors >= level/5) {
        tmp_vict = tmp_vict->doppel);
 
   sprintf(long_buf, "%s%s is here.\n\r", tmp_vict->name, tmp_vict->pcdata->title);
-  sprintf(short_buf, tmp_vict->name);
+  sprintf(short_buf,"%s", tmp_vict->name);
 
   order = number_range(0,level/5 - mirrors);
 
@@ -2820,21 +2824,23 @@ switch( dice(1,5) )
 	&&   (ch->fighting == vch || vch->fighting == ch)))
 	    continue;
 	if ( is_safe(ch, vch) )
-          continue;
-          if (!IS_NPC(ch) && vch != ch &&
-              ch->fighting != vch && vch->fighting != ch &&
-              (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
-            {
-            if (!can_see(vch, ch))
-                do_yell(vch, "Help someone is attacking me!");
-            else
-              {
-                 sprintf(buf,"Die, %s, you sorcerous dog!",
-                    (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
-                     ch->doppel->name : ch->name);
-                 do_yell(vch,buf);
-              }
-          }
+  {
+    continue;
+  }
+  if (!IS_NPC(ch) && vch != ch &&
+      ch->fighting != vch && vch->fighting != ch &&
+      (IS_SET(vch->affected_by,AFF_CHARM) || !IS_NPC(vch)))
+  {
+    if (!can_see(vch, ch))
+        do_yell(vch, "Help someone is attacking me!");
+    else
+      {
+          sprintf(buf,"Die, %s, you sorcerous dog!",
+            (is_affected(ch,gsn_doppelganger)&&!IS_IMMORTAL(vch))?
+              ch->doppel->name : ch->name);
+          do_yell(vch,buf);
+      }
+  }
 
 	if (saves_spell(level,vch,DAM_POISON))
 	{
@@ -3136,9 +3142,15 @@ void spell_animate_dead(int sn,int level, CHAR_DATA *ch, void *vo,int target )
 		}
 	 }
 	}
-  sprintf(buf, "The undead body of %s", buf3);
+  int written = snprintf(buf, sizeof(buf), "The undead body of %s", buf3);
+  if (written >= sizeof(buf)) {
+    bug("spell_animate_dead()-1: output truncated.",0);
+  }
   undead->short_descr = str_dup(buf);
-  sprintf(buf, "The undead body of %s slowly staggers around.\n\r", buf3);
+  written = snprintf(buf, sizeof(buf), "The undead body of %s slowly staggers around.\n\r", buf3);
+  if (written >= sizeof(buf)) {
+    bug("spell_animate_dead()-2: output truncated.",0);
+  }
   undead->long_descr = str_dup(buf);
 
   for(obj2 = obj->contains;obj2;obj2=next)
@@ -6317,9 +6329,15 @@ void spell_mummify( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 		}
 	 }
 	}
-  sprintf(buf, "The mummified corpse of %s", buf3);
+  int written = snprintf(buf, sizeof(buf), "The mummified corpse of %s", buf3);
+  if (written >= sizeof(buf)) {
+    bug("spell_mummify()-1: output truncated.",0);
+  }
   undead->short_descr = str_dup(buf);
-  sprintf(buf, "The mummifed corpse of %s slowly staggers around.\n\r", buf3);
+  written = snprintf(buf, sizeof(buf), "The mummifed corpse of %s slowly staggers around.\n\r", buf3);
+  if (written >= sizeof(buf)) {
+    bug("spell_mummify()-2: output truncated.",0);
+  }
   undead->long_descr = str_dup(buf);
 
   for(obj2 = obj->contains;obj2;obj2=next)
@@ -6396,11 +6414,13 @@ void spell_forcecage( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     if ( CAN_DETECT(victim, ADET_PROTECTOR) )
     {
-      if (victim == ch)
+      if (victim == ch) {
         send_to_char("You have already your forcecage around you.\n\r",ch);
-      else
+      }
+      else {
         act("$N has already a forcecage around $mself.",ch,NULL,victim,TO_CHAR);
-        return;
+      }
+      return;
     }
 
     af.where     = TO_DETECTS;
@@ -6423,11 +6443,13 @@ void spell_iron_body( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     if ( CAN_DETECT(victim, ADET_PROTECTOR) )
     {
-      if (victim == ch)
+      if (victim == ch) {
         send_to_char("Your skin is already as hard as iron.\n\r",ch);
-      else
+      }
+      else {
         act("$N's skin is already as hard as iron.",ch,NULL,victim,TO_CHAR);
-        return;
+      }
+      return;
     }
 
     af.where     = TO_DETECTS;
@@ -6450,11 +6472,13 @@ void spell_elemental_sphere( int sn, int level, CHAR_DATA *ch, void *vo,int targ
 
     if ( CAN_DETECT(victim, ADET_PROTECTOR) )
     {
-      if (victim == ch)
+      if (victim == ch) {
         send_to_char("An elemental sphere is already protecting you.\n\r",ch);
-      else
+      }
+      else {
         act("An elemental sphere is already protecting $N.",ch,NULL,victim,TO_CHAR);
-        return;
+      }
+      return;
     }
 
     af.where     = TO_DETECTS;

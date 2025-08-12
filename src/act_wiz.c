@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -340,6 +341,7 @@ void do_limited( CHAR_DATA *ch, char *argument )
     send_to_char( buf, ch );
     ingameCount = 0;
     for ( obj=object_list; obj != NULL; obj=obj->next )
+    {
 	    if ( obj->pIndexData->vnum == obj_index->vnum )  
             {
 	      ingameCount++;
@@ -351,6 +353,7 @@ void do_limited( CHAR_DATA *ch, char *argument )
 		sprintf(buf, "In %-20s [%d] \n\r", obj->in_obj->short_descr, obj->in_obj->pIndexData->vnum);
 	      send_to_char( buf, ch );
 	    }
+    }
 	    sprintf(buf, "  %d found in game. %d should be in pFiles.\n\r", 
 			ingameCount, obj_index->count-ingameCount);
 	    send_to_char( buf, ch );
@@ -554,7 +557,7 @@ void do_tick( CHAR_DATA *ch, char *argument )
 void do_outfit ( CHAR_DATA *ch, char *argument )
 {
     OBJ_DATA *obj;
-    int sn,vnum;
+    int vnum;
 
     if ((ch->level > 5 || IS_NPC(ch)) && !IS_IMMORTAL(ch))
     {
@@ -600,7 +603,6 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
     /* do the weapon thing */
     if ((obj = get_wield_char(ch,FALSE) ) == NULL)
     {
-    	sn = 0; 
     	vnum = OBJ_VNUM_SCHOOL_SWORD; /* just in case! */
         vnum = class_table[ch->class].weapon;
     	obj = create_object(get_obj_index(vnum),0);
@@ -1951,12 +1953,15 @@ void do_mstat( CHAR_DATA *ch, char *argument )
     sprintf(buf,"It belives the religion of %s.\n\r",
 	IS_NPC(victim) ? "Chronos" : religion_table[victim->religion].leader);
     send_to_char(buf,ch);
-    sprintf( buf,
+    int written = snprintf(buf, sizeof(buf),
 	"Lv: %d  Class: %s  Align: %s  Gold: %ld  Silver: %ld  Exp: %d\n\r",
 	victim->level,       
 	IS_NPC(victim) ? "mobile" : class_table[victim->class].name,            
 	buf2,
 	victim->gold, victim->silver, victim->exp );
+    if (written >= sizeof(buf)) {
+        bug("do_mstat(): output truncated.",0);
+    }
     send_to_char( buf, ch );
 
     sprintf(buf,"Armor: pierce: %d  bash: %d  slash: %d  magic: %d\n\r",
@@ -2134,10 +2139,11 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	  strcat( buf, "area " );
         strcat( buf, "\n\r" );
         send_to_char( buf, ch );
-    }	
+    }
+    char timebuf[30];
+    strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S", localtime(&(victim->last_fight_time)));
     sprintf(buf, "Last fought: %10s  Last fight time: %s", 
-	victim->last_fought!=NULL?victim->last_fought->name:"none", 
-	ctime( &(victim->last_fight_time) )     );
+	victim->last_fought!=NULL?victim->last_fought->name:"none",timebuf);
     send_to_char( buf, ch );
     sprintf(buf, "In_mind: [%s] Hunting: [%s]\n\r", 
 		victim->in_mind != NULL ? victim->in_mind : "none",
@@ -4951,8 +4957,17 @@ void do_mset( CHAR_DATA *ch, char *argument )
 		victim->pcdata->learned[sn]	= 70;
 	}
 
-	if (ORG_RACE(victim) == RACE(victim)) RACE(victim) = race;
-	ORG_RACE(victim) = race;
+	if (IS_NPC(victim)) {
+        if (victim->pIndexData->race == RACE(victim))
+            RACE(victim) = race;
+        victim->pIndexData->race = race;
+    } else {
+        if (victim->pcdata->race == RACE(victim))
+            RACE(victim) = race;
+        victim->pcdata->race = race;
+    }
+
+
 
 	victim->exp = victim->level * exp_per_level(victim, 0);
 	return;
@@ -5488,7 +5503,10 @@ void do_find( CHAR_DATA *ch, char *argument )
 
     sprintf(buf,"%s.\n\r",find_way(ch,ch->in_room,location));
     send_to_char(buf,ch);
-    sprintf(lbuf,"From %d to %d: %s",ch->in_room->vnum,location->vnum,buf);
+    int written = snprintf(lbuf, sizeof(lbuf),"From %d to %d: %s",ch->in_room->vnum,location->vnum,buf);
+    if (written >= sizeof(lbuf)) {
+        bug("do_find(): output truncated.",0);
+    }
     log_string(lbuf);
     return;
 }

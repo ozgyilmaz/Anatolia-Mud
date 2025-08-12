@@ -595,17 +595,12 @@ void one_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt ,bool secondary)
     int sn,skill;
     int dam_type;
     bool counter;
-    bool yell;
     bool result;
     OBJ_DATA *corpse;
     int sercount;
 
     sn = -1;
     counter = FALSE;
-
-    if (victim->fighting == ch)
-      yell = FALSE;
-    else yell = TRUE;
 
     /* just in case */
     if (victim == ch || ch == NULL || victim == NULL)
@@ -1010,12 +1005,13 @@ void one_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt ,bool secondary)
 		  do_get(ch, "silver corpse");
 		}
 
-		if ( IS_SET(ch->act, PLR_AUTOSAC) )
+		if ( IS_SET(ch->act, PLR_AUTOSAC) ) {
 		  if (IS_SET(ch->act,PLR_AUTOLOOT) && corpse
 		      && corpse->contains)
 		    return;  /* leave if corpse has treasure */
 		  else
 		    do_sacrifice( ch, "corpse" );
+			}
 	      }
 	    return;
 	  }
@@ -1050,12 +1046,13 @@ void one_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt ,bool secondary)
 		    !IS_SET(ch->act,PLR_AUTOLOOT))
 		  do_get(ch, "gold corpse");
 		
-		if ( IS_SET(ch->act, PLR_AUTOSAC) )
+		if ( IS_SET(ch->act, PLR_AUTOSAC) ) {
 		  if ( IS_SET(ch->act,PLR_AUTOLOOT) && corpse
 		      && corpse->contains)
 		    return;  /* leave if corpse has treasure */
 		  else
 		    do_sacrifice( ch, "corpse" );
+			}
 	      }
 	    return;
 
@@ -1609,11 +1606,14 @@ bool damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bo
 		 gain_condition(ch,COND_BLOODLUST,3);
 		}
 
-	    if ( IS_SET(ch->act, PLR_AUTOSAC) )
-       	      if ( IS_SET(ch->act,PLR_AUTOLOOT) && corpse && corpse->contains)
+	    if ( IS_SET(ch->act, PLR_AUTOSAC) ) {
+       	      if ( IS_SET(ch->act,PLR_AUTOLOOT) && corpse && corpse->contains) {
 		return TRUE;  /* leave if corpse has treasure */
-	      else
+		}
+	      else {
 		do_sacrifice( ch, "corpse" );
+		}
+		}
 	}
 
 	return TRUE;

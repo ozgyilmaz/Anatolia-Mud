@@ -178,13 +178,16 @@ void ban_site(CHAR_DATA *ch, char *argument, bool fPerm)
 		IS_SET(pban->ban_flags,BAN_PREFIX) ? "*" : "",
 		pban->name,
 		IS_SET(pban->ban_flags,BAN_SUFFIX) ? "*" : "");
-	    sprintf(buf,"%-12s    %-3d  %-7s  %s\n\r",
+	    int written = snprintf(buf, sizeof(buf),"%-12s    %-3d  %-7s  %s\n\r",
 		buf2, pban->level,
 		IS_SET(pban->ban_flags,BAN_NEWBIES) ? "newbies" :
 		IS_SET(pban->ban_flags,BAN_PLAYER)  ? "player" :
 		IS_SET(pban->ban_flags,BAN_PERMIT)  ? "permit"  :
 		IS_SET(pban->ban_flags,BAN_ALL)     ? "all"	: "",
 	    	IS_SET(pban->ban_flags,BAN_PERMANENT) ? "perm" : "temp");
+        if (written >= sizeof(buf)) {
+            bug("ban_site()-1: output truncated.",0);
+        }
 	    add_buf(buffer,buf);
         }
 

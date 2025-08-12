@@ -179,7 +179,7 @@ void garble(char *garbled,char *speech)
 {
   int i;
 
-  for (i = 0; speech[i] != (char) NULL; i++) {
+  for (i = 0; speech[i] != '\0'; i++) {
     if (speech[i] >= 'a' && speech[i] <= 'z')
       garbled[i] = 'a' + number_range(0,25);
     else if (speech[i] >= 'A' && speech[i] <= 'Z')
@@ -365,9 +365,6 @@ void do_shout( CHAR_DATA *ch, char *argument )
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-	CHAR_DATA *victim;
-
-	victim = d->original ? d->original : d->character;
 
 	if ( d->connected == CON_PLAYING &&
 	     d->character != ch &&
@@ -1980,7 +1977,11 @@ char *translate(CHAR_DATA *ch, CHAR_DATA *victim, char *argument)
     }
   buf[i] = '\0';
 
-  sprintf(trans,"{%s} %s",language_table[ch->language].name,buf);
+  int written = snprintf(trans, sizeof(trans), "{%s} %s",language_table[ch->language].name, buf);
+
+if (written >= sizeof(trans)) {
+    bug("translate(): output truncated.",0);
+}
   return trans;
 }
 
@@ -2141,8 +2142,14 @@ void do_remort( CHAR_DATA *ch, char *argument )
 
 	if (!quit_org(ch, argument, TRUE, TRUE ))	return;
 
-	link( remstr, mkstr );
-	unlink( remstr );
+	if (link(remstr, mkstr) == -1) {
+    perror("link");
+    return;
+}
+	if (unlink(remstr) == -1) {
+    perror("unlink");
+    return;
+}
 
 	load_char_obj( d, name );
 

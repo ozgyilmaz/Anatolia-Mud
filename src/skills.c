@@ -491,7 +491,10 @@ void do_glist( CHAR_DATA *ch , char *argument)
      continue;
    if ( buf[0] != '\0')
     {
-     sprintf(buf , "%-18s%-18s\n\r", buf,skill_table[count].name);
+     int written = snprintf(buf, sizeof(buf), "%-18s%-18s\n\r", buf,skill_table[count].name);
+     if (written >= sizeof(buf)) {
+          bug("do_glist(): output truncated.",0);
+      }
      send_to_char(buf,ch);
      buf[0] = '\0';
     }
@@ -536,8 +539,9 @@ void do_learn( CHAR_DATA *ch, char *argument )
     CHAR_DATA *mob;
     int adept;
 
-    if ( IS_NPC(ch) )
-	return;
+    if ( IS_NPC(ch) ) {
+	    return;
+    }
 
 	if ( !IS_AWAKE(ch) )
 	{
